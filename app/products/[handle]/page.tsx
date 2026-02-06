@@ -171,12 +171,12 @@ export default function ProductPage({ params }: ProductPageProps) {
     })?.node;
 
     if (!selectedVariant) {
-      alert("Please select a valid size and color combination");
+      toast.error("Please select a valid size and color combination");
       return;
     }
 
     if (!selectedVariant.availableForSale) {
-      alert("This variant is currently out of stock");
+      toast.error("This variant is currently out of stock");
       return;
     }
 
