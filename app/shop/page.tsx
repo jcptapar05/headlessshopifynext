@@ -80,6 +80,7 @@ export default async function ShopPage(props: {
                 id
                 title
                 handle
+                availableForSale
                 productType
                 tags
                 vendor
@@ -228,6 +229,13 @@ export default async function ShopPage(props: {
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-300">
                                 No Image
+                              </div>
+                            )}
+                            {!product.availableForSale && (
+                              <div className="absolute inset-0 bg-black/50 z-10 flex items-center justify-center">
+                                <span className="text-white font-medium px-3 py-1 border border-white uppercase text-sm tracking-wide">
+                                  Out of Stock
+                                </span>
                               </div>
                             )}
                           </div>

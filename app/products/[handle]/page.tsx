@@ -40,6 +40,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               handle
               description
               descriptionHtml
+              availableForSale
               productType
               vendor
               tags
@@ -97,15 +98,28 @@ export default function ProductPage({ params }: ProductPageProps) {
       const productData = body.data.product;
       setProduct(productData);
 
-      // Set default selections
-      const sizeOpt = productData.options.find((opt: any) => opt.name.toLowerCase() === "size");
-      const colorOpt = productData.options.find((opt: any) => opt.name.toLowerCase() === "color");
+      // Set default selections - Prioritize available variant
+      const availableVariant =
+        productData.variants.edges.find((e: any) => e.node.availableForSale)?.node ||
+        productData.variants.edges[0]?.node;
 
-      if (sizeOpt && sizeOpt.values.length > 0) {
-        setSelectedSize(sizeOpt.values[0]);
-      }
-      if (colorOpt && colorOpt.values.length > 0) {
-        setSelectedColor(colorOpt.values[0]);
+      if (availableVariant) {
+        const vSize = availableVariant.selectedOptions.find((opt: any) => opt.name.toLowerCase() === "size")?.value;
+        const vColor = availableVariant.selectedOptions.find((opt: any) => opt.name.toLowerCase() === "color")?.value;
+
+        if (vSize) setSelectedSize(vSize);
+        if (vColor) setSelectedColor(vColor);
+      } else {
+        // Fallback if no variants (shouldn't happen for valid products)
+        const sizeOpt = productData.options.find((opt: any) => opt.name.toLowerCase() === "size");
+        const colorOpt = productData.options.find((opt: any) => opt.name.toLowerCase() === "color");
+
+        if (sizeOpt && sizeOpt.values.length > 0) {
+          setSelectedSize(sizeOpt.values[0]);
+        }
+        if (colorOpt && colorOpt.values.length > 0) {
+          setSelectedColor(colorOpt.values[0]);
+        }
       }
 
       // Fetch related products
@@ -282,6 +296,22 @@ export default function ProductPage({ params }: ProductPageProps) {
     return colorMap[colorLower] || colorLower;
   };
 
+  const isCombinationAvailable = (size: string | null, color: string | null) => {
+    if (!product || !product.variants) return false;
+    return product.variants.edges.some(({ node }: any) => {
+      const vSize = node.selectedOptions.find((o: any) => o.name.toLowerCase() === "size")?.value;
+      const vColor = node.selectedOptions.find((o: any) => o.name.toLowerCase() === "color")?.value;
+
+      if (size && vSize !== size) return false;
+      if (color && vColor !== color) return false;
+
+      return node.availableForSale;
+    });
+  };
+
+  // Check if the currently selected combination is available (for the Add to Cart button)
+  const isCurrentSelectionAvailable = isCombinationAvailable(selectedSize, selectedColor);
+
   if (loading || !product) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -415,19 +445,30 @@ export default function ProductPage({ params }: ProductPageProps) {
                   Size: <span className="font-normal text-gray-600">{selectedSize || "Select your size"}</span>
                 </label>
                 <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                  {sizeOption.values.map((size: string) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`border rounded-lg py-2 md:py-3 transition-all font-medium text-sm md:text-base ${
-                        selectedSize === size
-                          ? "border-black dark:border-white bg-black dark:bg-white text-white dark:text-black"
-                          : "border-gray-300 dark:border-zinc-700 hover:border-black dark:hover:border-white"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {sizeOption.values.map((size: string) => {
+                    const isAvailable = isCombinationAvailable(size, selectedColor);
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        disabled={!isAvailable}
+                        className={`border rounded-lg py-2 md:py-3 transition-all font-medium text-sm md:text-base relative ${
+                          selectedSize === size
+                            ? "border-black dark:border-white bg-black dark:bg-white text-white dark:text-black"
+                            : isAvailable
+                              ? "border-gray-300 dark:border-zinc-700 hover:border-black dark:hover:border-white"
+                              : "border-gray-200 dark:border-zinc-800 text-gray-300 dark:text-zinc-600 cursor-not-allowed bg-gray-50 dark:bg-zinc-900"
+                        }`}
+                      >
+                        {size}
+                        {!isAvailable && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-full h-px bg-gray-300 dark:bg-zinc-600 rotate-45 transform scale-x-110" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -439,19 +480,25 @@ export default function ProductPage({ params }: ProductPageProps) {
                   Color: <span className="font-normal text-gray-600">{selectedColor || "Choose a color"}</span>
                 </label>
                 <div className="flex gap-3 flex-wrap">
-                  {colorOption.values.map((color: string) => (
-                    <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
-                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full transition-all ${
-                        selectedColor === color
-                          ? "ring-2 ring-offset-2 ring-black dark:ring-white"
-                          : "ring-2 ring-gray-300 dark:ring-zinc-700 hover:ring-black dark:hover:ring-white"
-                      }`}
-                      style={{ backgroundColor: getColorStyle(color) }}
-                      title={color}
-                    />
-                  ))}
+                  {colorOption.values.map((color: string) => {
+                    const isAvailable = isCombinationAvailable(selectedSize, color);
+                    return (
+                      <button
+                        key={color}
+                        onClick={() => setSelectedColor(color)}
+                        disabled={!isAvailable}
+                        className={`w-10 h-10 md:w-12 md:h-12 rounded-full transition-all relative flex items-center justify-center ${
+                          selectedColor === color
+                            ? "ring-2 ring-offset-2 ring-black dark:ring-white"
+                            : "ring-2 ring-gray-300 dark:ring-zinc-700 hover:ring-black dark:hover:ring-white"
+                        } ${!isAvailable ? "opacity-50 cursor-not-allowed" : ""}`}
+                        style={{ backgroundColor: getColorStyle(color) }}
+                        title={isAvailable ? color : `${color} (Out of Stock)`}
+                      >
+                        {!isAvailable && <div className="w-full h-0.5 bg-gray-500 rotate-45 transform" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -462,8 +509,8 @@ export default function ProductPage({ params }: ProductPageProps) {
               <div className="flex items-center gap-3">
                 <button
                   onClick={decrementQuantity}
-                  className="w-10 h-10 md:w-12 md:h-12 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center"
-                  disabled={quantity <= 1}
+                  className="w-10 h-10 md:w-12 md:h-12 border border-gray-300 dark:border-zinc-700 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={quantity <= 1 || !isCurrentSelectionAvailable}
                 >
                   <Minus className="w-4 h-4" />
                 </button>
@@ -484,9 +531,10 @@ export default function ProductPage({ params }: ProductPageProps) {
                 size="lg"
                 className="w-full rounded-lg text-sm md:text-base"
                 onClick={handleAddToCart}
+                disabled={!isCurrentSelectionAvailable}
               >
                 <ShoppingBag className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-                Add to Cart
+                {isCurrentSelectionAvailable ? "Add to Cart" : "Out of Stock"}
               </Button>
               <Button
                 size="lg"
