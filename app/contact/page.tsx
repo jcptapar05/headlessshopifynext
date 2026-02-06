@@ -8,7 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { toast } from "sonner";
 import { Mail, Phone, MapPin, Clock, Send, Facebook, Twitter, Instagram, Linkedin, ArrowRight } from "lucide-react";
 
+import { useLanguage } from "@/lib/i18n/language-context";
+
 export default function ContactPage() {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,10 +66,11 @@ export default function ContactPage() {
           <span className="text-sm md:text-base font-medium tracking-widest text-gray-300 uppercase mb-4 block">
             Get in touch
           </span>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif tracking-tight text-white mb-6">Contact Us</h1>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif tracking-tight text-white mb-6">
+            {t.contactPage.title}
+          </h1>
           <p className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto leading-relaxed">
-            We are here to help. Reach out to us for any inquiries, and we will get back to you with the attention you
-            deserve.
+            {t.contactPage.description}
           </p>
         </div>
       </section>
@@ -175,7 +179,7 @@ export default function ContactPage() {
           {/* Right Column: Contact Form */}
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-backwards">
             <div className="sticky top-24">
-              <h2 className="text-3xl font-light tracking-tight mb-8">Send a Message</h2>
+              <h2 className="text-3xl font-light tracking-tight mb-8">{t.contactPage.formTitle}</h2>
               <form
                 onSubmit={handleSubmit}
                 className="space-y-10"

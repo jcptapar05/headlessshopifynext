@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { FilterSidebar } from "@/components/shop/filter-sidebar";
+import { ShopHeader } from "@/components/shop/shop-header";
+
 import { Pagination } from "@/components/shop/pagination";
 
 export default async function ShopPage(props: {
@@ -10,13 +12,18 @@ export default async function ShopPage(props: {
 }) {
   const searchParams = await props.searchParams;
 
-  const { category, vendor, size, gender, price, cursor, direction } = searchParams;
+  const { category, vendor, size, gender, price, cursor, direction, q } = searchParams;
 
   const isPrev = direction === "prev";
   const limit = 12;
 
   // Build Query for Filtered Products
   const queryParts: string[] = [];
+
+  // Search query
+  if (typeof q === "string" && q.length > 0) {
+    queryParts.push(q);
+  }
 
   const getArray = (val: string | string[] | undefined) => {
     if (!val) return [];
@@ -167,9 +174,7 @@ export default async function ShopPage(props: {
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Products Grid with Filters */}
       <section className="container mx-auto px-4 py-8 lg:py-12">
-        <div className="flex flex-col mb-12">
-          <h1 className="text-3xl font-normal tracking-tight mb-2 dark:text-white">Shop All</h1>
-        </div>
+        <div className="flex flex-col mb-12"></div>
 
         <div className="flex flex-col lg:flex-row gap-12">
           <aside className="w-full lg:w-64 flex-shrink-0">
@@ -234,7 +239,7 @@ export default async function ShopPage(props: {
                           </h3>
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                              {product.priceRange.minVariantPrice.currencyCode === "USD" && "$"}
+                              {product.priceRange.minVariantPrice.currencyCode === "PHP" && "P"}
                               {parseFloat(product.priceRange.minVariantPrice.amount).toFixed(2)}
                             </span>
                             {product.priceRange.minVariantPrice.amount !==

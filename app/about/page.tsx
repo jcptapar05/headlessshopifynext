@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Award, Globe, Heart, Leaf, Truck, Users, ArrowRight, Instagram, Twitter, Facebook } from "lucide-react";
 
+import { useLanguage } from "@/lib/i18n/language-context";
+
 export default function AboutPage() {
+  const { t } = useLanguage();
   const values = [
     {
       icon: <Heart className="w-8 h-8" />,
@@ -67,9 +70,11 @@ export default function AboutPage() {
         </div>
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif tracking-tight text-white mb-6">Our Story</h1>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif tracking-tight text-white mb-6">
+            {t.aboutPage.title}
+          </h1>
           <p className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto leading-relaxed">
-            Crafting timeless fashion with purpose, passion, and sustainability at heart
+            {t.aboutPage.description}
           </p>
         </div>
       </section>
