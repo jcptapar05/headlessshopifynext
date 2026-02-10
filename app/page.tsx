@@ -43,7 +43,7 @@ export default async function Home() {
         <div className="container mx-auto max-w-2xl text-center space-y-6">
           <h2 className="text-3xl font-bold">Join Our Newsletter</h2>
           <p className="text-neutral-400">Subscribe for exclusive offers, new arrivals, and fashion inspiration.</p>
-          <div className="flex gap-2 max-w-md mx-auto">
+          <div className="flex flex-col md:flex-row gap-2 max-w-md mx-auto">
             <input
               type="email"
               placeholder="Enter your email"
